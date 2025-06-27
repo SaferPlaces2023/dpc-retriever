@@ -15,21 +15,22 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 #
 #
-# Name:        module_version.py
+# Name:        module_args.py
 # Purpose:
 #
 # Author:      Luzzi Valerio
 #
-# Created:     29/09/2024
+# Created:     25/06/2025
 # -----------------------------------------------------------------------------
-from importlib.metadata import version, PackageNotFoundError  # Python 3.8+
+from .cli.module_log import Logger
+from .utils.module_s3 import isfile
 
 
-def get_version():
+def check_args(args):
     """
-    get_version
+    Check if the provided arguments are valid.
+    :param args: List of arguments to check.
+    :return: True if all arguments are valid, False otherwise.
     """
-    try:
-        return version(__package__)
-    except PackageNotFoundError:
-        return "unknown"
+    
+    return args

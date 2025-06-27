@@ -1,5 +1,5 @@
 import unittest
-from template_cli import main_python
+from dpc_retriever import main_python
 
 
 class Test(unittest.TestCase):

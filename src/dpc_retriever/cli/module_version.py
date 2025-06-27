@@ -1,4 +1,4 @@
-# -------------------------------------------------------------------------------
+# -----------------------------------------------------------------------------
 # License:
 # Copyright (c) 2025 Gecosistema S.r.l.
 #
@@ -15,12 +15,22 @@
 # OTHER DEALINGS IN THE SOFTWARE.
 #
 #
-# Name:        __init__.py.py
+# Name:        module_version.py
 # Purpose:
 #
 # Author:      Luzzi Valerio
 #
-# Created:     18/03/2021
-# -------------------------------------------------------------------------------
-from .main import main_python
-from .strings import parse_event
+# Created:     29/09/2024
+# -----------------------------------------------------------------------------
+from importlib.metadata import version, PackageNotFoundError  # Python 3.8+
+
+
+def get_version():
+    """
+    get_version
+    """
+    try:
+        package_name = __package__.split('.')[0]  # Get the top-level package name
+        return version(package_name)
+    except PackageNotFoundError:
+        return "unknown"

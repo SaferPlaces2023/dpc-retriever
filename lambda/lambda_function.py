@@ -1,5 +1,5 @@
-from template_cli import parse_event
-from template_cli import main_python as main_function
+from dpc_retriever import parse_event
+from dpc_retriever import main_python as main_function
 
 
 def lambda_handler(event, context):

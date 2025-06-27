@@ -3,12 +3,13 @@ requires = ["setuptools>=61.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "template-cli"
+name = "dpc-retriever"
 version = "1.0.2"
-description = "Generic template for a CLI application using Click"
+description = "Scripts to get data from DPC API"
 readme = ""
 authors = [
-  { name="Valerio Luzzi", email="valerio.luzzi@gecosistema.com" }
+  { name="Valerio Luzzi", email="valerio.luzzi@gecosistema.com" },
+  { name="Tommaso Redaelli", email="tommaso.redaelli@gecosistema.com" }
 ]
 license = { text = "MIT" }
 keywords = []
@@ -23,13 +24,30 @@ dependencies = [
   "boto3"
 ]
 
+[project.optional-dependencies]
+py311 = [
+    "gdal @ https://download.lfd.uci.edu/pythonlibs/archived/GDAL-3.4.3-cp311-cp311-win_amd64.whl",
+    "numpy==1.24.4",
+    "numba==0.57.1"
+]
+py312 = [
+    "gdal @ https://github.com/cgohlke/geospatial-wheels/releases/download/v2024.9.22/GDAL-3.9.2-cp312-cp312-win_amd64.whl",
+    "numpy==1.26.4",
+    "numba==0.61.0"
+]
+py313 = [
+    "gdal @ https://github.com/cgohlke/geospatial-wheels/releases/download/v2025.3.30/gdal-3.10.2-cp313-cp313-win_amd64.whl",
+    "numpy==2.2.6",
+    "numba==0.61.2"
+]
+
 [project.urls]
-Homepage = "https://github.com/saferplaces/template-cli"
+Homepage = "https://github.com/SaferPlaces2023/dpc-retriever"
 
 [project.scripts]
-template-cli = "template_cli.main:main_click"
-template_cli = "template_cli.main:main_click"
+dpc-retriever = "dpc_retriever.main:main_click"
+dpc_retriever = "dpc_retriever.main:main_click"
 
 [tool.setuptools]
-packages = ["template_cli"]
+packages = ["dpc_retriever"]
 package-dir = {"" = "src"}

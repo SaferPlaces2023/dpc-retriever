@@ -1,3 +1,7 @@
-# template-cli
+# dpc-retriever
 
-**template-cli** is a base **template** to start an easy **Python** command-line program. 
+**dpc-retriever** is a package built to get data from DPC service api
+
+### Some documentation:
+- https://dpc-radar.readthedocs.io/it/latest/index.html
+- https://dpc-radar.readthedocs.io/it/latest/api.html

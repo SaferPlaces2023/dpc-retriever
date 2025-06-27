@@ -3,10 +3,10 @@
 #FROM ghcr.io/osgeo/gdal:ubuntu-small-3.7.0
 FROM 901702069075.dkr.ecr.us-east-1.amazonaws.com/docker-gdal
 
-COPY src /var/tmp/template_cli/src
-COPY setup.py /var/tmp/template_cli/
-COPY .git /var/tmp/template_cli/.git
-WORKDIR /var/tmp/template_cli 
+COPY src /var/tmp/dpc_retriever/src
+COPY setup.py /var/tmp/dpc_retriever/
+COPY .git /var/tmp/dpc_retriever/.git
+WORKDIR /var/tmp/dpc_retriever 
 RUN pip install .
 ADD tests /var/task/tests
 
@@ -15,7 +15,7 @@ RUN pip cache purge
 RUN apt-get remove -y git && \
     apt-get autoremove -y && \
     apt-get clean
-RUN rm -rf /var/tmp/template_cli/
+RUN rm -rf /var/tmp/dpc_retriever/
 
 # AWS Lambda
 # copy the entrypoint script to use it like awslinux2

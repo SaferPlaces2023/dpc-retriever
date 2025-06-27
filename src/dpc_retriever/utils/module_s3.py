@@ -33,7 +33,7 @@ from requests.exceptions import RequestException
 from botocore.exceptions import ClientError, NoCredentialsError
 from .filesystem import justext, justpath, justfname, forceext
 from .strings import startswith
-from .module_log import Logger
+from ..cli.module_log import Logger
 
 shpext = ("shp", "dbf", "shx", "prj", "qml", "qix", "qlr", "mta", "qmd", "cpg")
 
