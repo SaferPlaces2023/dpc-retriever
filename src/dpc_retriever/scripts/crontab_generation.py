@@ -38,7 +38,7 @@ def freq2cron(freq: str) -> str:
 @click.command()
 @click.option('--products', type=str, multiple=True, default=None, help='List of product codes to include in the crontab. If not provided, all available products will be used.')
 @click.option('--output_file', type=str, default='crontab.txt', help='Output file for the generated crontab.')
-@click.option('--dt_strategy', type=click.Choice(['NOW', 'LAST']), default='NOW', help='Strategy for date time: NOW for current time, LAST for last available data.')
+@click.option('--dt_strategy', type=click.Choice(['NOW','now', 'LAST','last']), default='NOW', help='Strategy for date time: NOW for current time, LAST for last available data.')
 @click.option('--bbox', type=str, help='Bounding box in the format "minx,miny,maxx,maxy". If not provided, no bounding box will be applied.')
 @click.option('--t_srs', type=str, help='Target spatial reference system in EPSG format (e.g., "EPSG:4326"). If not provided, original CRS will be used.')
 @click.option('--output_dir', type=str, help='Directory where the output files will be saved. If not provided, current working directory will be used.')
@@ -62,6 +62,14 @@ def generate_crontab(
     
     debug: bool = False,
 ):
+    """ 
+    Generate a crontab file for scheduled retrieval of DPC products.
+    
+    Examples:
+    dpc-crontab --output_file dpc-crontab.txt --dt_strategy now --output_dir ./output --debug   
+    """
+    
+    
     if debug:
         logger.setLevel(logging.DEBUG)
         
@@ -70,11 +78,11 @@ def generate_crontab(
     if not products:
         products = _AVALIABLE_PRODUCTS
     
-    if dt_strategy is not None and dt_strategy != 'NOW' and dt_strategy != 'LAST':
+    if dt_strategy is not None and dt_strategy.upper() != 'NOW' and dt_strategy.upper() != 'LAST':
         raise ValueError("dt_strategy must be 'NOW' or 'LAST'.")
     if dt_strategy is None:
         dt_strategy = 'NOW'
-    dt = None if dt_strategy == 'NOW' else 'LAST'
+    dt = None if dt_strategy.upper() == 'NOW' else 'LAST'
 
     script_name = 'dpc-retriever'
     
