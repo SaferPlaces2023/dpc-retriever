@@ -129,5 +129,6 @@ dmypy.json
 .pyre/
 
 # Jupyter notebooks
-tests/**/*.ipynb
+tests/**
 tests/tmp/
+!tests/**/*.py
