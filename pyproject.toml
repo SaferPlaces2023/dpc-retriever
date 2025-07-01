@@ -51,6 +51,8 @@ Homepage = "https://github.com/SaferPlaces2023/dpc-retriever"
 
 [project.scripts]
 dpc-retriever = "dpc_retriever.main:main_click"
+dpc-crontab = "dpc_retriever.scripts.crontab_generation:generate_crontab"
+dpc-shp-concat = "dpc_retriever.scripts.concat_shapefile:concat_shapefile"
 
 [tool.setuptools]
 packages = ["dpc_retriever"]

@@ -47,14 +47,19 @@ def args_validation(**kwargs):
     
     dt = kwargs.get('dt', None)
     if dt is not None:
-        try:
-            dt = datetime.datetime.fromisoformat(dt)
-        except ValueError:
-            raise ValueError("Invalid date format. Use ISO format (YYYY-MM-DDTHH:MM:SS).")
+        if not isinstance(dt, str):
+            raise ValueError("Date must be a string in ISO format (YYYY-MM-DDTHH:MM:SS) or 'LAST'")
+        if dt.upper() == 'LAST':
+            dt = product.last_avaliable_datetime()
+            if dt is None:
+                raise ValueError(f"No available data for product '{product.code}'. Please provide a valid date or check the product availability.")
+        else:
+            try:
+                dt = datetime.datetime.fromisoformat(dt)
+            except ValueError:
+                raise ValueError("Invalid date format. Use ISO format (YYYY-MM-DDTHH:MM:SS).")
     else:
-        dt = product.last_avaliable_datetime()
-        if dt is None:
-            raise ValueError(f"No available data for product '{product.code}'. Please provide a valid date or check the product availability.")
+        dt = product.now_datetime()
     
     bbox = kwargs.get('bbox', None)
     if bbox is not None:
@@ -83,6 +88,14 @@ def args_validation(**kwargs):
     return_data = kwargs.get('return_data', False)
     if not isinstance(return_data, bool):
         raise ValueError("Return data must be a boolean value (True or False).")
+    
+    output_dir = kwargs.get('output_dir', None)
+    if output_dir is not None:
+        if not isinstance(output_dir, str):
+            raise ValueError("Output directory must be a string.")
+        os.makedirs(output_dir, exist_ok=True)
+    else:
+        output_dir = os.getcwd()
 
     s3_bucket = kwargs.get('s3_bucket', None)
     if s3_bucket is not None and not module_s3.iss3(s3_bucket):
@@ -94,4 +107,11 @@ def args_validation(**kwargs):
     if s3_bucket is None and s3_catalog:
         raise ValueError("S3 registration cannot be enabled without providing an S3 bucket.")
     
-    return product, dt, bbox, t_srs, out_format, return_data, s3_bucket, s3_catalog
+    max_retry = kwargs.get('max_retry', 3)
+    if not isinstance(max_retry, int) or max_retry < 0:
+        raise ValueError("Maximum retry count must be a non-negative integer.")
+    retry_delay = kwargs.get('retry_delay', 60)
+    if not isinstance(retry_delay, int) or retry_delay < 0:
+        raise ValueError("Retry delay must be a non-negative integer representing seconds.")
+    
+    return product, dt, bbox, t_srs, out_format, return_data, output_dir, s3_bucket, s3_catalog, max_retry, retry_delay

@@ -42,6 +42,13 @@ class DPCProduct():
         self.description = description
         self.update_frequency = update_frequency
         
+    def now_datetime(self):
+        """
+        Returns the current datetime in UTC.
+        """
+        now_dt = datetime.datetime.now(tz=datetime.timezone.utc)
+        return pd.Timestamp(now_dt).floor(self.update_frequency).to_pydatetime()
+        
     def last_avaliable_datetime(self):
         url = f"{self.base_url}/findLastProductByType"
         params = { "type": self.code }

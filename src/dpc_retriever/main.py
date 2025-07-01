@@ -50,10 +50,16 @@ from . import module_args, module_retriever
                 help="The output format for the data file (e.g., '.tif', '.geotiff', '.nc', '.netcdf'). If not provided, the original format will be used.")
 @click.option('--return_data', is_flag=True, required=False, default=False,
               help="If set, the function will return the data as a byte stringinstead of file reference")
+@click.option('--output_dir', type=click.STRING, required=False, default=None,
+              help="The directory where the output file will be saved. If not provided, the file will be saved in the current working directory.")
 @click.option('--s3_bucket', type=click.STRING, required=False, default=None,
                 help="The S3 bucket to copy the data to. If not provided, the data will not be copied to S3.")
 @click.option('--s3_catalog', is_flag=True, required=False, default=False,
               help="If set, the function will register the availability of the product in the S3 catalog file")
+@click.option('--max_retry', type=click.INT, required=False, default=3,
+              help="The maximum number of retries to attempt in case of failure. Default is 3.")
+@click.option('--retry_delay', type=click.INT, required=False, default=60,
+              help="The delay in seconds between retries. Default is 60 seconds.")
 
 # -----------------------------------------------------------------------------
 # Common options to all Gecosistema CLI applications
@@ -73,7 +79,9 @@ def main_click(**kwargs):
     DPC Retriever - Command Line Interface
     
     Some example usage:
-    dpc-retriever --product SRI  --bbox 12,45.15,12.7,45.6 --t_srs 'EPSG:4326' --out_format '.tif' --return_data --s3_bucket s3://saferplaces.co/test/dpc-retriever --s3_catalog
+    dpc-retriever --product SRI --dt last --bbox 12,45.15,12.7,45.6 --t_srs 'EPSG:4326' --out_format '.tif' --return_data --s3_bucket s3://saferplaces.co/test/dpc-retriever --s3_catalog
+    dpc-retriever --product SRI --dt 2025-06-30T10:55:00 --bbox 12,45.15,12.7,45.6 --t_srs 'EPSG:4326' --out_format '.tif' --return_data --s3_bucket s3://saferplaces.co/test/dpc-retriever --s3_catalog --max_retry 5 --retry_delay 10
+    dpc-retriever --product SRI --bbox 12,45.15,12.7,45.6 --t_srs 'EPSG:4326' --out_format '.tif' --output_dir ./outputs --max_retry 5 --retry_delay 10
     
     """
     output = main_python(**kwargs)
@@ -92,8 +100,11 @@ def main_python(
     t_srs = None,
     out_format = None,
     return_data = False,
+    output_dir = None,
     s3_bucket = None,
     s3_catalog = False,
+    max_retry = None,
+    retry_delay = None,
     
     # --- Common options ---
     
@@ -120,10 +131,13 @@ def main_python(
             't_srs': t_srs,
             'out_format': out_format,
             'return_data': return_data,
+            'output_dir': output_dir,
             's3_bucket': s3_bucket,
-            's3_catalog': s3_catalog
+            's3_catalog': s3_catalog,
+            'max_retry': max_retry,
+            'retry_delay': retry_delay
         }
-        product, dt, bbox, t_srs, out_format, return_data, s3_bucket, s3_catalog = module_args.args_validation(** kwargs)
+        product, dt, bbox, t_srs, out_format, return_data, output_dir, s3_bucket, s3_catalog, max_retry, retry_delay = module_args.args_validation(** kwargs)
         Logger.debug(f"Validated arguments: {kwargs}")
         
         set_status(backend, jid, 10, "Arguments validated successfully.")
@@ -132,7 +146,9 @@ def main_python(
         
         product_file = module_retriever.retrieve_product(
             product = product,
-            date_time = dt
+            date_time = dt,
+            max_retry = max_retry,
+            retry_delay = retry_delay
         )
         
         set_status(backend, jid, 40, f"Product retrieved successfully: {product_file}")
@@ -140,9 +156,11 @@ def main_python(
         product_file = module_retriever.process_product(
             product = product,
             data_filepath = product_file,
+            date_time = dt,
             bbox = bbox,
             t_srs = t_srs,
-            out_format = out_format
+            out_format = out_format,
+            output_dir = output_dir
         )
         
         set_status(backend, jid, 70, f"Product preprocessed successfully: {product_file}")
@@ -163,10 +181,10 @@ def main_python(
         if return_data:
             with open(product_file, 'rb') as f:
                 output['data'] = f.read()
-        elif product_uri is not None:
-            output['data'] = product_uri
         else:
-            output['data'] = product_file
+            output['data'] = { 'filename': product_file }
+            if product_uri is not None:
+                output['data']['uri'] = product_uri
         
         
         # DOC: -- Return the response ----------------------------------------------

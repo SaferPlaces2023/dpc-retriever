@@ -1,4 +1,5 @@
 import os
+import time
 import datetime
 import requests
 from filelock import FileLock
@@ -12,11 +13,12 @@ import geopandas as gpd
 
 from .dpc.products import DPCProduct, DPCException
 from .utils import filesystem, module_s3
+from .cli.module_log import Logger
 
 
 
 
-def retrieve_product(product: DPCProduct, date_time: datetime.datetime=None):
+def retrieve_product(product: DPCProduct, date_time: datetime.datetime=None, max_retry: int = 3, retry_delay: int = 60) -> str:
     
     """
     Retrieve the product data for the specified date_time.
@@ -26,22 +28,29 @@ def retrieve_product(product: DPCProduct, date_time: datetime.datetime=None):
     :return: The path to the downloaded data file.
     """
     
-    data_filepath = product.download_data(
-        date_time = date_time,
-        out_dir = filesystem.tempdir()
-    )
+    try:
+        data_filepath = product.download_data(
+            date_time = date_time,
+            out_dir = filesystem.tempdir()
+        )
+        
+        if data_filepath is None or not os.path.exists(data_filepath):
+            raise DPCException(f"Data for product {product.code} not available for the specified date_time: {date_time}")
     
-    if data_filepath is None:
-        raise DPCException(f"Data for product {product.code} not available for the specified date_time: {date_time}")
-    
-    if not os.path.exists(data_filepath):
-        raise DPCException(f"Data file {data_filepath} does not exist after download.")
+    except Exception as e:
+        if max_retry <= 0:
+            raise DPCException(f"Failed to retrieve product {product.code} after maximum retries: {e}")
+        
+        Logger.debug(f"Error retrieving product {product.code} for date_time {date_time}: {e}. Retry in {retry_delay} seconds...")
+        
+        time.sleep(retry_delay)
+        return retrieve_product(product, date_time, max_retry-1, retry_delay)
     
     return data_filepath
 
 
 
-def process_product(product: DPCProduct, data_filepath: str, bbox: tuple[float] | list[float], t_srs: str = None, out_format: str = None) -> str:
+def process_product(product: DPCProduct, data_filepath: str, date_time: datetime.datetime, bbox: tuple[float] | list[float], t_srs: str = None, out_format: str = None, output_dir: str = None) -> str:
     
     """
     Process the product data to the specified format and coordinate reference system.
@@ -65,8 +74,14 @@ def process_product(product: DPCProduct, data_filepath: str, bbox: tuple[float] 
         bbox is not None,
         t_srs is not None,
         filesystem.justext(data_filepath) != out_format,
-        data_type == 'raster'
+        data_type == 'raster',
+        output_dir is not None
     ])
+    
+    dest_data_filepath = data_filepath    
+    if output_dir is not None:
+        dest_data_filepath = os.path.join(output_dir, module_s3.hive_path({'year': date_time.year, 'month': date_time.month, 'day': date_time.day, 'product': product.code}), filesystem.justfname(data_filepath))
+        os.makedirs(os.path.dirname(dest_data_filepath), exist_ok=True)
     
     if data_type == 'raster':
         if data_filepath.endswith('.tif'):
@@ -85,11 +100,10 @@ def process_product(product: DPCProduct, data_filepath: str, bbox: tuple[float] 
             data_filepath = filesystem.forceext(data_filepath, out_format)
         if to_be_processed:
             if out_format in [None, '.tif', '.geotiff']:
-                data[product.code].rio.to_raster(data_filepath)
+                data[product.code].rio.to_raster(dest_data_filepath)
             elif out_format in ['.nc', '.netcdf']:
-                data.to_netcdf(data_filepath)
+                data.to_netcdf(dest_data_filepath)
                 
-    
     elif data_type == 'vector':
         data = gpd.read_file(data_filepath)
         if bbox is not None:
@@ -101,9 +115,9 @@ def process_product(product: DPCProduct, data_filepath: str, bbox: tuple[float] 
         if out_format is not None and out_format not in ['.shp', '.geojson']:
             raise DPCException(f"Unsupported output format {out_format} for vector data.")
         if to_be_processed:
-            data.to_file(data_filepath)
+            data.to_file(dest_data_filepath)
             
-    return data_filepath
+    return dest_data_filepath
             
         
 
@@ -131,7 +145,7 @@ def store_product(product: DPCProduct, data_filepath: str, date_time: datetime.d
     uri = f'{s3_bucket}/data/{hive_path}/{filesystem.justfname(data_filepath)}'
     upload_ok = module_s3.s3_upload(filename=data_filepath, uri=uri, remove_src=False)
     if filesystem.justext(data_filepath) == 'shp':
-        additional_exts = ['.shx', '.dbf', '.prj']
+        additional_exts = ['.shx', '.dbf', '.prj', '.cpg']
         upload_ok = upload_ok and all([
             module_s3.s3_upload(
                 filename = filesystem.forceext(data_filepath, additional_ext), 
