@@ -59,7 +59,11 @@ def concat_shapefile(
     if remove_src:
         logger.debug(f"Removing source shapefiles from '{src}'.")
         for shp in shapefiles:
+            add_ext = ['.shx', '.dbf', '.prj', '.cpg']
             os.remove(shp)
+            for ext in add_ext:
+                os.remove(shp.replace('.shp', ext))
+            
     
     combined_gdf.to_file(out, driver='ESRI Shapefile')
     
