@@ -93,6 +93,7 @@ def forceext(pathname, newext):
     forceext
     """
     (root, _) = os.path.splitext(normpath(pathname))
+    newext = newext.lstrip(".")
     pathname = root + ("." + newext if len(newext.strip()) > 0 else "")
     return normpath(pathname)
 
@@ -108,14 +109,18 @@ def israster(pathname):
     """
     israster
     """
-    return isfile(pathname) and pathname.lower().endswith(".tif")
+    
+    raster_extensions = [".tif", ".tiff", ".geotiff"]
+    return isfile(pathname) and any(pathname.lower().endswith(ext) for ext in raster_extensions)
 
 
-def isshape(pathname):
+def isvector(pathname):
     """
-    isshape
+    isvector
     """
-    return isfile(pathname) and pathname.lower().endswith(".shp")
+    
+    vector_extensions = [".json", ".geojson", ".shp"]
+    return isfile(pathname) and any(pathname.lower().endswith(ext) for ext in vector_extensions)
 
 
 def iss3(filename):

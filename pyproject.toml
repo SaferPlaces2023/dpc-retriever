@@ -20,8 +20,13 @@ classifiers = [
 ]
 dependencies = [
   "requests",
+  "filelock",
   "click",
-  "boto3"
+  "boto3",
+  "xarray",
+  "rioxarray",
+  "netcdf4",
+  "geopandas"
 ]
 
 [project.optional-dependencies]
@@ -46,7 +51,6 @@ Homepage = "https://github.com/SaferPlaces2023/dpc-retriever"
 
 [project.scripts]
 dpc-retriever = "dpc_retriever.main:main_click"
-dpc_retriever = "dpc_retriever.main:main_click"
 
 [tool.setuptools]
 packages = ["dpc_retriever"]

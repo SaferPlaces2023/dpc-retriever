@@ -25,3 +25,5 @@
 
 from .main import main_python
 from .utils.strings import parse_event
+
+from .dpc import *
