@@ -30,6 +30,13 @@ def concat_shapefile(
     debug: bool = False
 ):
     
+    """ 
+    Concatenate multiple shapefiles into a single shapefile.
+    
+    Examples:
+    dpc-shp-concat --src ./output --prefix 01-07-2025 --debug --out ./output/01-07-2025.shp --remove_src 
+    """
+    
     if debug:
         logger.setLevel(logging.DEBUG)
     
