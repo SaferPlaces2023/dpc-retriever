@@ -20,9 +20,9 @@ Different option based on py version: *__py311__* / *__py312__* / *__py313__*
 ### Scripts:
 
 #### dpc-retriever
-- `dpc-retriever --product SRI --dt last --bbox 12,45.15,12.7,45.6 --t_srs 'EPSG:4326' --out_format '.tif' --return_data --s3_bucket s3://saferplaces.co/test/dpc-retriever --s3_catalog`
-- `dpc-retriever --product SRI --dt 2025-06-30T10:55:00 --bbox 12,45.15,12.7,45.6 --t_srs 'EPSG:4326' --out_format '.tif' --return_data --s3_bucket s3://saferplaces.co/test/dpc-retriever --s3_catalog --max_retry 5 --retry_delay 10`
-- `dpc-retriever --product SRI --bbox 12,45.15,12.7,45.6 --t_srs 'EPSG:4326' --out_format '.tif' --output_dir ./outputs --max_retry 5 --retry_delay 10`
+- `dpc-retriever --product SRI --dt last --bbox 12,45.15,12.7,45.6 --t_srs EPSG:4326 --out_format .tif --return_data --s3_bucket s3://saferplaces.co/test/dpc-retriever --s3_catalog`
+- `dpc-retriever --product SRI --dt 2025-06-30T10:55:00 --bbox 12,45.15,12.7,45.6 --t_srs EPSG:4326 --out_format .tif --return_data --s3_bucket s3://saferplaces.co/test/dpc-retriever --s3_catalog --max_retry 5 --retry_delay 10`
+- `dpc-retriever --product SRI --bbox 12,45.15,12.7,45.6 --t_srs EPSG:4326 --out_format .tif --output_dir ./outputs --max_retry 5 --retry_delay 10`
 
 #### dpc-crontab
 - `dpc-crontab --output_file dpc-crontab.txt --dt_strategy now --output_dir ./output --debug`
