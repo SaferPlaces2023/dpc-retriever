@@ -29,6 +29,9 @@ def retrieve_product(product: DPCProduct, date_time: datetime.datetime=None, max
     """
     
     try:
+        if not product.is_avaliable(date_time):
+            raise DPCException(f"Product {product.code} not available for the specified date_time: {date_time}")
+        
         data_filepath = product.download_data(
             date_time = date_time,
             out_dir = filesystem.tempdir()
@@ -39,9 +42,14 @@ def retrieve_product(product: DPCProduct, date_time: datetime.datetime=None, max
     
     except Exception as e:
         if max_retry <= 0:
-            raise DPCException(f"Failed to retrieve product {product.code} after maximum retries: {e}")
+            raise DPCException(f"Failed to retrieve product {product.code} after maximum retries ({max_retry}).")
         
-        Logger.debug(f"Error retrieving product {product.code} for date_time {date_time}: {e}. Retry in {retry_delay} seconds...")
+        if type(e) is DPCException:
+            Logger.debug(e.message)
+        else:
+            Logger.debug(f"Error retrieving product {product.code} for date_time {date_time}.")
+            
+        Logger.debug(f"Retrying in {retry_delay} seconds... (remaining retries: {max_retry})")
         
         time.sleep(retry_delay)
         return retrieve_product(product, date_time, max_retry-1, retry_delay)

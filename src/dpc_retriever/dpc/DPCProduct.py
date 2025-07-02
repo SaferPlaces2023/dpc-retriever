@@ -48,7 +48,21 @@ class DPCProduct():
         """
         now_dt = datetime.datetime.now(tz=datetime.timezone.utc)
         return pd.Timestamp(now_dt).floor(self.update_frequency).to_pydatetime()
+    
+    
+    def is_avaliable(self, date_time):
+        url = f"{self.base_url}/existsProduct"
+        params = {
+            'type': self.code,
+            'time': str(int(date_time.timestamp() * 1000))  # Convert datetime to milliseconds
+        }
+        response = requests.get(url = url, params = params)
+        if response.status_code == 200: 
+            return response.json()
+        else:
+            return False
         
+    
     def last_avaliable_datetime(self):
         url = f"{self.base_url}/findLastProductByType"
         params = { "type": self.code }
