@@ -79,9 +79,9 @@ def main_click(**kwargs):
     DPC Retriever - Command Line Interface
     
     Some example usage:
-    dpc-retriever --product SRI --dt last --bbox 12,45.15,12.7,45.6 --t_srs 'EPSG:4326' --out_format '.tif' --return_data --s3_bucket s3://saferplaces.co/test/dpc-retriever --s3_catalog
-    dpc-retriever --product SRI --dt 2025-06-30T10:55:00 --bbox 12,45.15,12.7,45.6 --t_srs 'EPSG:4326' --out_format '.tif' --return_data --s3_bucket s3://saferplaces.co/test/dpc-retriever --s3_catalog --max_retry 5 --retry_delay 10
-    dpc-retriever --product SRI --bbox 12,45.15,12.7,45.6 --t_srs 'EPSG:4326' --out_format '.tif' --output_dir ./outputs --max_retry 5 --retry_delay 10
+    dpc-retriever --product SRI --dt last --bbox 12,45.15,12.7,45.6 --t_srs EPSG:4326 --out_format .tif --return_data --s3_bucket s3://saferplaces.co/test/dpc-retriever --s3_catalog
+    dpc-retriever --product SRI --dt 2025-06-30T10:55:00 --bbox 12,45.15,12.7,45.6 --t_srs EPSG:4326 --out_format .tif --return_data --s3_bucket s3://saferplaces.co/test/dpc-retriever --s3_catalog --max_retry 5 --retry_delay 10
+    dpc-retriever --product SRI --bbox 12,45.15,12.7,45.6 --t_srs EPSG:4326 --out_format .tif --output_dir ./outputs --max_retry 5 --retry_delay 10
     
     """
     output = main_python(**kwargs)
