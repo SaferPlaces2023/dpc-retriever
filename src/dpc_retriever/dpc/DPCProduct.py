@@ -108,7 +108,8 @@ class DPCProduct():
         Returns the last available data for the product.
         """
         
-        # TODO: Should check if date_time is avaliable when is provided
+        if not self.is_datetime_avaliable(date_time):
+            raise DPCException(f"Product {self.code} not available for the specified date_time: {date_time}")
         
         date_time = self.last_avaliable_datetime() if date_time is None else date_time
         if date_time is None:
