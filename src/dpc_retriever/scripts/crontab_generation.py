@@ -3,7 +3,7 @@ import click
 import logging
 from logging import Logger
 
-from ..dpc.products import _AVALIABLE_PRODUCTS
+from ..dpc.products import _ALL_PRODUCTS
 
 logger = logging.getLogger(__name__)
 
@@ -73,10 +73,10 @@ def generate_crontab(
     if debug:
         logger.setLevel(logging.DEBUG)
         
-    products = _AVALIABLE_PRODUCTS if products is None else [p for p in _AVALIABLE_PRODUCTS if p.code in products]
+    products = _ALL_PRODUCTS if products is None else [p for p in _ALL_PRODUCTS if p.code in products]
 
     if not products:
-        products = _AVALIABLE_PRODUCTS
+        products = _ALL_PRODUCTS
     
     if dt_strategy is not None and dt_strategy.upper() != 'NOW' and dt_strategy.upper() != 'LAST':
         raise ValueError("dt_strategy must be 'NOW' or 'LAST'.")

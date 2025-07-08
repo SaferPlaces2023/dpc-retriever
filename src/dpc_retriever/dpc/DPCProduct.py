@@ -42,6 +42,27 @@ class DPCProduct():
         self.description = description
         self.update_frequency = update_frequency
         
+    
+    def to_dict(self, description=False, last_avaliable_datetime=False):
+        """
+        Returns a dictionary representation of the product.
+        """
+        last_avaliable_datetime_dict = dict()
+        if last_avaliable_datetime:
+            try: 
+                last_avaliable_datetime_dict['last_avaliable_datetime'] = self.last_avaliable_datetime().isoformat()
+            except Exception as e:
+                last_avaliable_datetime_dict['last_avaliable_datetime'] = None
+        description_dict = { 'description': self.description } if description else dict()
+        return {
+            'code': self.code,
+            'name': self.name,
+            ** description_dict,
+            'update_frequency': self.update_frequency,
+            ** last_avaliable_datetime_dict
+        }
+    
+    
     def now_datetime(self):
         """
         Returns the current datetime in UTC.
@@ -50,7 +71,7 @@ class DPCProduct():
         return pd.Timestamp(now_dt).floor(self.update_frequency).to_pydatetime()
     
     
-    def is_avaliable(self, date_time):
+    def is_datetime_avaliable(self, date_time):
         url = f"{self.base_url}/existsProduct"
         params = {
             'type': self.code,

@@ -38,7 +38,7 @@ if __name__ == '__main__':
     
     test = Test()
     
-    for product in products._AVALIABLE_PRODUCTS:
+    for product in products._ALL_PRODUCTS:
         
         # DOC:  --bbox 12,45.15,12.7,45.6 --t_srs 'EPSG:4326' --out_format '.tif' --return_data --s3_bucket s3://saferplaces.co/test/dpc-retriever --s3_catalog
         

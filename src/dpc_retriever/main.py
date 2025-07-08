@@ -22,14 +22,17 @@
 #
 # Created:     18/03/2021
 # -----------------------------------------------------------------------------
+import sys
 import click
 import traceback
 import pprint
+import json
 
 from .utils.module_s3 import copy
 from .utils.module_prologo import prologo, epilogo
 from .utils.module_status import set_status
-from .cli.module_log import Logger
+from .cli.module_log import Logger, logging
+from .dpc import products
 from . import module_args, module_retriever
 
 
@@ -38,7 +41,7 @@ from . import module_args, module_retriever
 # Specific options of your CLI application
 # -----------------------------------------------------------------------------
 
-@click.option('--product', type=click.STRING, required=True, default=None,
+@click.option('--product', type=click.STRING, required=False, default=None,
               help="The product code to retrieve.")
 @click.option('--dt', type=click.STRING, required=False, default=None,
               help="The date and time of the product to retrieve in ISO format (YYYY-MM-DDTHH:MM:SS). If not provided, the last available product will be retrieved.")
@@ -60,6 +63,8 @@ from . import module_args, module_retriever
               help="The maximum number of retries to attempt in case of failure. Default is 3.")
 @click.option('--retry_delay', type=click.INT, required=False, default=60,
               help="The delay in seconds between retries. Default is 60 seconds.")
+@click.option('--status', is_flag=True, required=False, default=False,
+              help="If set, the function will list status of available products and exit without performing any retrieval. This is useful for checking available products before making a request. If used in combinationwith --product, it will list the details of the specified product. If used in combination with --verbose, it will print the details of all available products.")
 
 # -----------------------------------------------------------------------------
 # Common options to all Gecosistema CLI applications
@@ -106,6 +111,8 @@ def main_python(
     max_retry = None,
     retry_delay = None,
     
+    status = False,
+    
     # --- Common options ---
     
     backend = None,
@@ -122,6 +129,25 @@ def main_python(
     
         # DOC: -- Init logger + cli settings + handle version and debug ------------
         t0, jid = prologo(backend, jid, version, verbose, debug)
+        
+        if status:
+            if product is not None:
+                if products.product_by_code(product) is None:
+                    raise ValueError(f"Product '{product}' not found. Use --list_products to see available products.")
+            list_products = products._ALL_PRODUCTS if product is None else [products.product_by_code(product)]
+            if verbose:
+                out = [
+                    p.to_dict(description=True, last_avaliable_datetime=True) for p in list_products
+                ]
+            else:
+                out = [p.code for p in list_products if p.code in list(map(lambda x: x.code, products.avaliable_products()))]
+                if product is not None:
+                    out = product in out
+            print(json.dumps(out, indent=2))
+            sys.exit(0)
+            
+            
+                
 
         # DOC: -- Arguments validation ---------------------------------------------
         kwargs = {
