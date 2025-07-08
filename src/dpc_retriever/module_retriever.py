@@ -1,4 +1,5 @@
 import os
+import shutil
 import time
 import datetime
 import requests
@@ -74,6 +75,8 @@ def process_product(product: DPCProduct, data_filepath: str, date_time: datetime
         data_type = 'raster'
     elif filesystem.isvector(data_filepath):
         data_type = 'vector'
+    else:
+        data_type = filesystem.justext(data_filepath)
 
     if data_type is None:
         raise DPCException(f"Unsupported data type for file {data_filepath}. Must be raster or vector.")
@@ -124,6 +127,9 @@ def process_product(product: DPCProduct, data_filepath: str, date_time: datetime
             raise DPCException(f"Unsupported output format {out_format} for vector data.")
         if to_be_processed:
             data.to_file(dest_data_filepath)
+            
+    else:
+        shutil.move(data_filepath, dest_data_filepath)
             
     return dest_data_filepath
             
