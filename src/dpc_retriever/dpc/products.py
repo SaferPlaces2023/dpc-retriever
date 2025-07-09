@@ -36,25 +36,25 @@ SRT3 = DPCProduct(
     code = "SRT3",
     name = "Cumulata di precipitazione in 3 ore",
     description="Le cumulata SRT3 e\' ottenuta esclusivamente a partire dai dati raw della rete a terra provenienti dalle stazioni pluviometriche (circa 3000), disponibili nell\'ambito della rete dei centri funzionali, e successivamente oggetto di elaborazione attraverso tecniche di interpolazione da parte del Dipartimento al fine di ottenere la distribuzione omogenea dell\'informazione sul territorio sui diversi intervalli temporali.",
-    update_frequency="1H"
+    update_frequency="1h"
 )
 SRT6 = DPCProduct(
     code = "SRT6",
     name = "Cumulata di precipitazione in 6 ore",
     description="Le cumulata SRT6 e\' ottenuta esclusivamente a partire dai dati raw della rete a terra provenienti dalle stazioni pluviometriche (circa 3000), disponibili nell\'ambito della rete dei centri funzionali, e successivamente oggetto di elaborazione attraverso tecniche di interpolazione da parte del Dipartimento al fine di ottenere la distribuzione omogenea dell\'informazione sul territorio sui diversi intervalli temporali.",
-    update_frequency="1H"
+    update_frequency="1h"
 )
 SRT12 = DPCProduct(
     code = "SRT12",
     name = "Cumulata di precipitazione in 12 ore",
     description="Le cumulata SRT12 e\' ottenuta esclusivamente a partire dai dati raw della rete a terra provenienti dalle stazioni pluviometriche (circa 3000), disponibili nell\'ambito della rete dei centri funzionali, e successivamente oggetto di elaborazione attraverso tecniche di interpolazione da parte del Dipartimento al fine di ottenere la distribuzione omogenea dell\'informazione sul territorio sui diversi intervalli temporali.",
-    update_frequency="1H"
+    update_frequency="1h"
 )
 SRT24 = DPCProduct(
     code = "SRT24",
     name = "Cumulata di precipitazione in 24 ore",
     description="Le cumulata SRT24 e\' ottenuta esclusivamente a partire dai dati raw della rete a terra provenienti dalle stazioni pluviometriche (circa 3000), disponibili nell\'ambito della rete dei centri funzionali, e successivamente oggetto di elaborazione attraverso tecniche di interpolazione da parte del Dipartimento al fine di ottenere la distribuzione omogenea dell\'informazione sul territorio sui diversi intervalli temporali.",
-    update_frequency="1H"
+    update_frequency="1h"
 )
 _ALL_PRODUCTS.extend([SRT1, SRT3, SRT6, SRT12, SRT24])
 
@@ -70,7 +70,7 @@ TEMP = DPCProduct(
     code = "TEMP",
     name = "Mappa delle Temperature",
     description="Prodotto che e\' ottenuto a partire dai dati raw della rete a terra provenienti dalle stazioni termometriche (circa 2600), disponibili nell\'ambito della rete dei centri funzionali, e successivamente oggetto di elaborazione attraverso tecniche di interpolazione da parte del Dipartimento al fine di ottenere la distribuzione omogenea dell\'informazione sul territorio.",
-    update_frequency="1H"
+    update_frequency="1h"
 )
 _ALL_PRODUCTS.append(TEMP)
 
