@@ -24,6 +24,7 @@
 # -------------------------------------------------------------------------------
 
 import os
+import shutil
 import hashlib
 import tempfile
 import datetime
@@ -165,13 +166,15 @@ def mkdirs(pathname):
     return os.path.isdir(pathname)
 
 
-def tempdir(name=""):
+def tempdir(name="", add_to_garbage_collection=True):
     """
     tempdir
     :return: a temporary directory
     """
-    foldername = normpath(tempfile.gettempdir() + "/" + name)
+    foldername = normpath(_PACKAGE_TEMP_DIR + "/" + name)
     os.makedirs(foldername, exist_ok=True)
+    if add_to_garbage_collection:
+        collect_garbage_temp_file(foldername)
     return foldername
 
 
@@ -194,7 +197,10 @@ def clean_temp_files(from_garbage_collection=True):
         for fp in _GARBAGE_TEMP_FILES:
             try:
                 if os.path.exists(fp):
-                    os.remove(fp)
+                    if os.path.isdir(fp):
+                        shutil.rmtree(fp, ignore_errors=True)
+                    elif os.path.isfile(fp):
+                        os.remove(fp)
             except Exception as e:
                 n_files -= 1
                 Logger.error(f"Error removing temporary file {fp}: {e}")
@@ -207,7 +213,10 @@ def clean_temp_files(from_garbage_collection=True):
         for fp in tmp_fps:
             try:
                 if os.path.exists(fp):
-                    os.remove(fp)
+                    if os.path.isdir(fp):
+                        shutil.rmtree(fp, ignore_errors=True)
+                    if os.path.isfile(fp):
+                        os.remove(fp)
             except Exception as e:
                 n_files -= 1
                 Logger.error(f"Error removing temporary file {fp}: {e}")
