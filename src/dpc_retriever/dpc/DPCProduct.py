@@ -126,7 +126,7 @@ class DPCProduct():
         if response.status_code == 200:
             return response
         else:
-            raise DPCException(f"Error fetching product data for {self.code}: {response.status_code} - {response.text}")
+            raise DPCException(f"Error fetching product data for {self.code} at {date_time}: {response.status_code} - {response.text}")
         
         
     def download_data(self, date_time = None, out_dir='.', return_data=False) -> None | str | gpd.GeoDataFrame | xr.Dataset:
@@ -151,7 +151,7 @@ class DPCProduct():
             
             attachment_filename = get_attachment_filename(response)
             if attachment_filename is None:
-                raise DPCException(f"Could not extract filename from response headers for product {self.code}.")
+                raise DPCException(f"Error in downloading product {self.code} at {date_time}. Could not extract filename from response headers.")
 
             output_file = os.path.join(out_dir, attachment_filename)
             with open(output_file, 'wb') as f:
@@ -175,4 +175,4 @@ class DPCProduct():
             return ds if return_data else output_file
             
         else:
-            raise DPCException(f"Error downloading product data for {self.code}: {response.status_code} - {response.text}")
+            raise DPCException(f"Error downloading product data for {self.code} at {date_time}: {response.status_code} - {response.text}")

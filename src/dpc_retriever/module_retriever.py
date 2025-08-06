@@ -43,7 +43,7 @@ def retrieve_product(product: DPCProduct, date_time: datetime.datetime=None, max
     
     except Exception as e:
         if max_retry <= 0:
-            raise DPCException(f"Failed to retrieve product {product.code} after maximum retries ({max_retry}).")
+            raise DPCException(f"Failed to retrieve product {product.code} for date {date_time} after maximum retries ({max_retry}).")
         
         if type(e) is DPCException:
             Logger.debug(e.message)
@@ -79,7 +79,7 @@ def process_product(product: DPCProduct, data_filepath: str, date_time: datetime
         data_type = filesystem.justext(data_filepath)
 
     if data_type is None:
-        raise DPCException(f"Unsupported data type for file {data_filepath}. Must be raster or vector.")
+        raise DPCException(f"Error processing product {product.code} at {date_time}. Unsupported data type for file {data_filepath}. Must be raster or vector.")
     
     to_be_processed = any([
         bbox is not None,
@@ -107,7 +107,7 @@ def process_product(product: DPCProduct, data_filepath: str, date_time: datetime
             data = data.rio.reproject(t_srs)
         if out_format is not None and filesystem.justext(data_filepath) != out_format:
             if out_format not in ['.tif', '.geotiff', '.nc', '.netcdf']:
-                raise DPCException(f"Unsupported output format {out_format} for raster data.")
+                raise DPCException(f"Error processing product {product.code} at {date_time}. Unsupported output format {out_format} for raster data.")
             data_filepath = filesystem.forceext(data_filepath, out_format)
         if to_be_processed:
             if out_format in [None, '.tif', '.geotiff']:
@@ -124,7 +124,7 @@ def process_product(product: DPCProduct, data_filepath: str, date_time: datetime
         if out_format is not None and filesystem.justext(data_filepath) != out_format:
             data_filepath = filesystem.forceext(data_filepath, out_format)
         if out_format is not None and out_format not in ['.shp', '.geojson']:
-            raise DPCException(f"Unsupported output format {out_format} for vector data.")
+            raise DPCException(f"Error processing product {product.code} at {date_time}. Unsupported output format {out_format} for vector data.")
         if to_be_processed:
             data.to_file(dest_data_filepath)
             
@@ -169,7 +169,7 @@ def store_product(product: DPCProduct, data_filepath: str, date_time: datetime.d
         ])
     
     if not upload_ok:
-        raise DPCException(f"Failed to upload {data_filepath} to {uri}")
+        raise DPCException(f"Error storing product {product.code} at {date_time}. Failed to upload {data_filepath} to {uri}")
     
     if register_catalog:
         
@@ -189,6 +189,6 @@ def store_product(product: DPCProduct, data_filepath: str, date_time: datetime.d
             upload_ok = module_s3.s3_upload(filename=avaliable_filepath, uri=avaliability_uri, remove_src=True)
             
             if not upload_ok:
-                raise DPCException(f"Failed to upload availability data to {avaliability_uri}")
+                raise DPCException(f"Error processing product {product.code} at {date_time}. Failed to upload availability data to {avaliability_uri}")
             
     return uri
