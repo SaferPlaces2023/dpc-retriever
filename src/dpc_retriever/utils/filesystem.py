@@ -23,10 +23,32 @@
 # Created:     16/12/2019
 # -------------------------------------------------------------------------------
 
-import datetime
 import os
-import tempfile
 import hashlib
+import tempfile
+import datetime
+
+from dpc_retriever.cli.module_log import Logger
+
+
+_PACKAGE_TEMP_DIR = os.path.join(tempfile.gettempdir(), 'dpc-retriever')
+if not os.path.exists(_PACKAGE_TEMP_DIR):
+    os.makedirs(_PACKAGE_TEMP_DIR, exist_ok=True)
+
+
+# DOC: Garbage collection of temp-files
+_GARBAGE_TEMP_FILES = set()
+
+def collect_garbage_temp_file(file_path):
+    """
+    Collects a temporary file for garbage collection.
+    """
+    _GARBAGE_TEMP_FILES.add(file_path)
+    if file_path.endswith('.shp'):
+        add_ext = ['.shx', '.dbf', '.prj', '.cpg']
+        for ext in add_ext:
+            _GARBAGE_TEMP_FILES.add(file_path.replace('.shp', ext))
+
 
 
 def now():
@@ -153,11 +175,43 @@ def tempdir(name=""):
     return foldername
 
 
-def tempfilename(prefix="", suffix=""):
+def tempfilename(prefix="", suffix="", include_timestamp=True, add_to_garbage_collection=True):
     """
     return a temporary filename
     """
-    return normpath(tempfile.gettempdir() + "/" + datetime.datetime.strftime(now(), f"{prefix}%Y%m%d%H%M%S%f{suffix}"))
+    timestamp = f"%Y%m%d%H%M%S%f" if include_timestamp else ""
+    temp_filepath = normpath(_PACKAGE_TEMP_DIR + "/" + datetime.datetime.strftime(now(), f"{prefix}{timestamp}{suffix}"))
+    if add_to_garbage_collection:
+        collect_garbage_temp_file(temp_filepath)
+    return temp_filepath
+
+def clean_temp_files(from_garbage_collection=True):
+    """
+    Cleans up temporary files collected for garbage collection.
+    """
+    if from_garbage_collection:
+        n_files = len(_GARBAGE_TEMP_FILES)
+        for fp in _GARBAGE_TEMP_FILES:
+            try:
+                if os.path.exists(fp):
+                    os.remove(fp)
+            except Exception as e:
+                n_files -= 1
+                Logger.error(f"Error removing temporary file {fp}: {e}")
+        _GARBAGE_TEMP_FILES.clear()
+        Logger.debug(f"Removed {n_files} temporary files from garbage collection.")
+    else:
+        tempfile_dir = tempfile.gettempdir()
+        tmp_fps = [os.path.join(tempfile_dir, f) for f in os.listdir(tempfile_dir) if os.path.isfile(os.path.join(tempfile_dir, f))]
+        n_files = len(tmp_fps)
+        for fp in tmp_fps:
+            try:
+                if os.path.exists(fp):
+                    os.remove(fp)
+            except Exception as e:
+                n_files -= 1
+                Logger.error(f"Error removing temporary file {fp}: {e}")
+        Logger.debug(f"Removed {n_files} temporary files from module temp directory: {tempfile_dir}.")
 
 
 def md5sum(filename):
