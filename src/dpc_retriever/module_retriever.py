@@ -35,7 +35,7 @@ def retrieve_product(product: DPCProduct, date_time: datetime.datetime=None, max
         
         data_filepath = product.download_data(
             date_time = date_time,
-            out_dir = filesystem.tempdir()
+            out_dir = None #filesystem.tempdir()
         )
         
         if data_filepath is None or not os.path.exists(data_filepath):
