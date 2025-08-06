@@ -48,7 +48,7 @@ def retrieve_product(product: DPCProduct, date_time: datetime.datetime=None, max
         if type(e) is DPCException:
             Logger.debug(e.message)
         else:
-            Logger.debug(f"Error retrieving product {product.code} for date_time {date_time}.")
+            Logger.debug(f"Error retrieving product {product.code} for date_time {date_time}. Error: {e}")
             
         Logger.debug(f"Retrying in {retry_delay} seconds... (remaining retries: {max_retry})")
         

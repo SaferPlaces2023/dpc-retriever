@@ -161,7 +161,7 @@ class DPCProduct():
                 
             if output_file.endswith('.zip'):
                 with zipfile.ZipFile(output_file, 'r') as zip_ref:
-                    extracted_dir = filesystem.tempdir(prefix=filesystem.juststem(attachment_filename), include_timestamp=False)
+                    extracted_dir = filesystem.tempdir(name=filesystem.juststem(attachment_filename))
                     zip_ref.extractall(extracted_dir)
                 output_file = os.path.join(extracted_dir, f"{date_time.strftime('%d-%m-%Y-%H-%M')}.shp")
                 ds = gpd.read_file(output_file)
