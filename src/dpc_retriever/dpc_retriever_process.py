@@ -250,10 +250,11 @@ class DPCRetrieverProcessor(BaseProcessor):
         if out_format is not None:  
             if type(out_format) is not str:
                 raise StatusException(StatusException.INVALID, 'out_format must be a string or null')
-            if out_format not in ['geojson']:
+            if out_format not in ['geojson', 'tif']:
                 raise StatusException(StatusException.INVALID, 'out_format must be one of ["geojson"]')
-        else:
-            out_format = 'geojson'
+        # else:
+        # TODO: Default should be in function of requested product
+        #     out_format = 'geojson'
         
         if bucket_destination is not None:
             if type(bucket_destination) is not str:
@@ -264,8 +265,9 @@ class DPCRetrieverProcessor(BaseProcessor):
         if out is not None:
             if type(out) is not str:
                 raise StatusException(StatusException.INVALID, 'out must be a string')
-            if not out.endswith('.geojson'):
-                raise StatusException(StatusException.INVALID, 'out must end with ".geojson"')
+            # TODO: Check should be in function of requested format
+            # if not out.endswith('.geojson'):
+            #     raise StatusException(StatusException.INVALID, 'out must end with ".geojson"')
             dirname, _ = os.path.split(out)
             if dirname != '' and not os.path.exists(dirname):
                 os.makedirs(dirname)
