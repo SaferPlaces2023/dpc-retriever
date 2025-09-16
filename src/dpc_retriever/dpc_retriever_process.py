@@ -307,8 +307,11 @@ class DPCRetrieverProcessor(BaseProcessor):
                 
                 debug = debug
             )
-            output_dt_filename = output_dt_obj['body']['data']['filename']
-            output_filenames.append(output_dt_filename)
+            if output_dt_obj.get('status', 'ERROR') == 'OK':
+                output_dt_filename = output_dt_obj['body']['data']['filename']
+                output_filenames.append(output_dt_filename)
+            else:
+                raise StatusException(StatusException.ERROR, f"Failed to retrieve data for {dt.isoformat()}: {output_dt_obj.get('body', 'Unknown error')}")
         
         return output_datetimes, output_filenames
     
