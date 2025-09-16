@@ -291,7 +291,7 @@ class DPCRetrieverProcessor(BaseProcessor):
         for dt in output_datetimes:
             output_dt_obj = main_python(
                 product = product.code,
-                dt = dt,
+                dt = dt.isoformat(),
                 bbox = [ long_range[0], lat_range[0], long_range[1], lat_range[1] ],
                 
                 t_srs = None,
