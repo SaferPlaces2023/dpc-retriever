@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dpc-retriever"
-version = "1.0.11"
+version = "1.0.12"
 description = "Scripts to get data from DPC API"
 readme = ""
 authors = [
@@ -45,9 +45,11 @@ package-dir = {"" = "src"}
 [tool.setuptools.packages.find]
 where = ["src"]
 
-[tool.setuptools.dynamic]
-optional-dependencies = {
-  gdal_py311 = { file = ["requirements.py311.txt"] },
-  pygeoapi   = { file = ["requirements.pygeoapi.txt"] },
-  all_py311  = { file = ["requirements.py311.txt", "requirements.pygeoapi.txt"] }
-}
+[tool.setuptools.dynamic.optional-dependencies.gdal_py311]
+file = ["requirements.py311.txt"]
+
+[tool.setuptools.dynamic.optional-dependencies.pygeoapi]
+file = ["requirements.pygeoapi.txt"]
+
+[tool.setuptools.dynamic.optional-dependencies.all_py311]
+file = ["requirements.py311.txt", "requirements.pygeoapi.txt"]
