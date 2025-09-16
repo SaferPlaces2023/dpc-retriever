@@ -23,8 +23,10 @@
 # Created:     16/12/2019
 # -------------------------------------------------------------------------------
 
-import datetime
 import os
+import glob
+import shutil
+import datetime
 import tempfile
 import hashlib
 
@@ -188,3 +190,22 @@ def md5text(text):
             digestor.update(text.encode("utf-8"))
         return digestor.hexdigest()
     return None
+
+
+def garbage_folders(*folders):
+    """
+    Remove all files in folders from the filesystem (but not the folder itself).
+    """
+    for folder in folders:
+        contents_fns = glob.glob(f'{folder}/*', recursive=True)
+        for content in contents_fns:
+            if os.path.isfile(content):
+                try:
+                    os.remove(content)
+                except Exception as e:
+                    print(f"Error removing file {content}: {e}")
+            elif os.path.isdir(content):
+                try:
+                    shutil.rmtree(content, ignore_errors=True)
+                except Exception as e:
+                    print(f"Error removing directory {content}: {e}")

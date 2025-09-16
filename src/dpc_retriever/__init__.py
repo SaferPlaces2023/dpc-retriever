@@ -27,3 +27,7 @@ from .main import main_python
 from .utils.strings import parse_event
 
 from .dpc import *
+
+import importlib.util
+if importlib.util.find_spec('pygeoapi') is not None:
+    from .dpc_retriever_process import DPCRetrieverProcess

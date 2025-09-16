@@ -29,6 +29,12 @@ dependencies = [
   "geopandas"
 ]
 
+[project.optional-dependencies]
+pygeoapi = [
+  "gdal2numpy",
+  "pygeoapi",
+]
+
 [project.urls]
 Homepage = "https://github.com/SaferPlaces2023/dpc-retriever"
 

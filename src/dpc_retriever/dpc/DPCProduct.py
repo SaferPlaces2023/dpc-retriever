@@ -36,11 +36,13 @@ class DPCProduct():
     
     base_url = 'https://radar-api.protezionecivile.it/wide/product'
     
-    def __init__(self, code, name, description, update_frequency):
+    def __init__(self, code, name, description, update_frequency, measure_type=None, measure_unit=None):
         self.code = code
         self.name = name
         self.description = description
         self.update_frequency = update_frequency
+        self.measure_type = measure_type
+        self.measure_unit = measure_unit
         
     
     def to_dict(self, description=False, last_avaliable_datetime=False):
