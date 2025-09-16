@@ -150,7 +150,7 @@ PROCESS_METADATA = {
 }
 
 
-class DPCRetrieverProcess(BaseProcessor):
+class DPCRetrieverProcessor(BaseProcessor):
     """
     DPC Retriever Process for retrieving data from DPC REST API.
     """
