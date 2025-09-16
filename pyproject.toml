@@ -31,7 +31,7 @@ dependencies = [
 
 [project.optional-dependencies]
 gdal_py311 = [
-  "https://github.com/cgohlke/geospatial-wheels/releases/download/v2024.2.18/GDAL-3.8.4-cp311-cp311-win_amd64.whl",
+  "GDAL @ https://github.com/cgohlke/geospatial-wheels/releases/download/v2024.2.18/GDAL-3.8.4-cp311-cp311-win_amd64.whl",
   "numpy==1.26.4",
   "numba==0.61.0",
 ]
