@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dpc-retriever"
-version = "1.0.7"
+version = "1.0.8"
 description = "Scripts to get data from DPC API"
 readme = ""
 authors = [
@@ -30,9 +30,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-gdal_py311 = [
-  "-r requirements.py311.txt"
-]
+gdal_py311 = { 
+  file = ["requirements.py311.txt"] 
+}
 pygeoapi = [
   "gdal2numpy",
   "pygeoapi"
