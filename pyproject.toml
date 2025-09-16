@@ -29,16 +29,15 @@ dependencies = [
   "geopandas"
 ]
 
+dynamic = ["optional-dependencies"]
+
 [project.optional-dependencies]
-gdal_py311 = { file = ["requirements.py311.txt"] }
-pygeoapi = [
-  "gdal2numpy",
-  "pygeoapi"
-]
-all_py311 = [
-  ".[gdal_py311]",
-  ".[pygeoapi]"
-]
+[tool.setuptools.dynamic]
+optional-dependencies = {
+  gdal_py311 = { file = ["requirements.py311.txt"] },
+  pygeoapi   = { file = ["requirements.pygeoapi.txt"] },
+  all_py311  = { file = ["requirements.py311.txt", "requirements.pygeoapi.txt"] }
+}
 
 [project.urls]
 Homepage = "https://github.com/SaferPlaces2023/dpc-retriever"
