@@ -155,15 +155,16 @@ class DPCRetrieverProcessor(BaseProcessor):
     DPC Retriever Process for retrieving data from DPC REST API.
     """
 
+    _tmp_data_folder = os.path.join(os.getcwd(), 'DPCRetrieverProcess')
+
     def __init__(self, processor_def):
         """
         Initialize the DPC Retriever Process.
         """
         super().__init__(processor_def, PROCESS_METADATA)
 
-        self.output_dir = os.path.join(os.getcwd(), 'DPCRetrieverProcess')
-        if not os.path.exists(self.output_dir):
-            os.makedirs(self.output_dir, exist_ok=True)
+        if not os.path.exists(self._tmp_data_folder):
+            os.makedirs(self._tmp_data_folder, exist_ok=True)
 
 
     def argument_validation(self, data):
@@ -293,7 +294,7 @@ class DPCRetrieverProcessor(BaseProcessor):
                 
                 t_srs = None,
                 out_format = None,
-                output_dir = self.output_dir,
+                output_dir = self._tmp_data_folder,
                 s3_bucket = None,
                 s3_catalog = False,
                 max_retry = 0,
@@ -322,11 +323,14 @@ class DPCRetrieverProcessor(BaseProcessor):
         return dataset        
 
 
-    def create_timestamp_raster(self, product, dataset):
+    def create_timestamp_raster(self, product, dataset, out):
         timestamps = [datetime.datetime.fromisoformat(str(ts).replace('.000000000','')) for ts in dataset.time.values]
         
-        merged_raster_filename = f'DPC/{product.code}/DPC__{product.code}__{timestamps[-1]}.tif'
-        merged_raster_filepath = os.path.join(self.output_dir, merged_raster_filename)
+        if out is None:
+            merged_raster_filename = f'DPC/{product.code}/DPC__{product.code}__{timestamps[-1]}.tif'
+            merged_raster_filepath = os.path.join(self._tmp_data_folder, merged_raster_filename)
+        else:
+            merged_raster_filepath = out
         
         xmin, xmax = dataset.lon.min().item(), dataset.lon.max().item()
         ymin, ymax = dataset.lat.min().item(), dataset.lat.max().item()
@@ -386,7 +390,8 @@ class DPCRetrieverProcessor(BaseProcessor):
             # DOC: Create timestamp raster
             timestamp_raster = self.create_timestamp_raster(
                 product = args['product'],
-                dataset = dataset
+                dataset = dataset,
+                out = args['out'],
             )
             
             # DOC: Store data in bucket if bucket_destination is provided
@@ -427,8 +432,8 @@ class DPCRetrieverProcessor(BaseProcessor):
             }
             raise ProcessorExecuteError(str(err))
         finally:
-            filesystem.garbage_folders(self.output_dir)
-            Logger.debug(f'Cleaned up temporary data folder: {self.output_dir}')
+            filesystem.garbage_folders(self._tmp_data_folder)
+            Logger.debug(f'Cleaned up temporary data folder: {self._tmp_data_folder}')
         
         return mimetype, outputs
     
