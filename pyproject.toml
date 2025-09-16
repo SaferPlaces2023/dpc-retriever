@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dpc-retriever"
-version = "1.0.5"
+version = "1.0.6"
 description = "Scripts to get data from DPC API"
 readme = ""
 authors = [
@@ -31,7 +31,7 @@ dependencies = [
 
 [project.optional-dependencies]
 gdal_py311 = [
-  'GDAL @ https://github.com/cgohlke/geospatial-wheels/releases/download/v2024.2.18/GDAL-3.8.4-cp311-cp311-win_amd64.whl; python_version == "3.11" and platform_system == "Windows"',
+  'GDAL @ https://github.com/cgohlke/geospatial-wheels/releases/download/v2024.2.18/GDAL-3.8.4-cp311-cp311-win_amd64.whl',
   "numpy==1.26.4",
   "numba==0.61.0",
 ]
