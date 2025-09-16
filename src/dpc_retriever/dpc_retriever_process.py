@@ -39,11 +39,11 @@ import rioxarray
 
 import gdal2numpy as g2n
 
-from utils import module_s3, filesystem
-from utils.status_exception import StatusException
-from cli.module_log import Logger, set_log_debug
-from dpc import products
-from main import main_python
+from .utils import module_s3, filesystem
+from .utils.status_exception import StatusException
+from .cli.module_log import Logger, set_log_debug
+from .dpc import products
+from .main import main_python
 
 from pygeoapi.process.base import BaseProcessor, ProcessorExecuteError
 
