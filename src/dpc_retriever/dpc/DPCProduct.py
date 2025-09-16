@@ -15,6 +15,8 @@ import rioxarray
 
 import geopandas as gpd
 
+from dpc_retriever.utils import filesystem
+from dpc_retriever.cli.module_log import Logger
 
 
 logging.getLogger("urllib3.connection").setLevel(logging.ERROR) # DOC: (Suppress urllib3 connection warnings) IGNORE HeaderParsingError(defects=defects, unparsed_data=unparsed_data)
@@ -128,7 +130,7 @@ class DPCProduct():
         if response.status_code == 200:
             return response
         else:
-            raise DPCException(f"Error fetching product data for {self.code}: {response.status_code} - {response.text}")
+            raise DPCException(f"Error fetching product data for {self.code} at {date_time}: {response.status_code} - {response.text}")
         
         
     def download_data(self, date_time = None, out_dir='.', return_data=False) -> None | str | gpd.GeoDataFrame | xr.Dataset:
@@ -153,28 +155,29 @@ class DPCProduct():
             
             attachment_filename = get_attachment_filename(response)
             if attachment_filename is None:
-                raise DPCException(f"Could not extract filename from response headers for product {self.code}.")
+                raise DPCException(f"Error in downloading product {self.code} at {date_time}. Could not extract filename from response headers.")
 
-            output_file = os.path.join(out_dir, attachment_filename)
+            output_file = filesystem.tempfilename(prefix=filesystem.juststem(attachment_filename), suffix=f'.{filesystem.justext(attachment_filename)}', include_timestamp=False)
             with open(output_file, 'wb') as f:
                 f.write(response.content)
                 
             if output_file.endswith('.zip'):
                 with zipfile.ZipFile(output_file, 'r') as zip_ref:
-                    extracted_dir = os.path.join(out_dir, attachment_filename.replace('.zip', ''))
+                    extracted_dir = filesystem.tempdir(name=filesystem.juststem(attachment_filename))
                     zip_ref.extractall(extracted_dir)
                 output_file = os.path.join(extracted_dir, f"{date_time.strftime('%d-%m-%Y-%H-%M')}.shp")
                 ds = gpd.read_file(output_file)
             
             elif output_file.endswith('.tif'):
-                ds = rioxarray.open_rasterio(output_file).to_dataset(name=self.code)
-                ds = ds.rename({'band': 'time'})
-                ds['time'] = [ date_time ]
-                ds['x'] = ds.x.values.astype(np.float32)
-                ds['y'] = ds.y.values.astype(np.float32)
-                ds[self.code] = xr.where(ds[self.code] == -9999, np.nan, ds[self.code])
-            
+                with rioxarray.open_rasterio(output_file) as ds:    # DOC: !!! Use open context manager to ensure proper closing
+                    ds = ds.to_dataset(name=self.code)
+                    ds = ds.rename({'band': 'time'})
+                    ds['time'] = [ date_time ]
+                    ds['x'] = ds.x.values.astype(np.float32)
+                    ds['y'] = ds.y.values.astype(np.float32)
+                    ds[self.code] = xr.where(ds[self.code] == -9999, np.nan, ds[self.code])
+                
             return ds if return_data else output_file
             
         else:
-            raise DPCException(f"Error downloading product data for {self.code}: {response.status_code} - {response.text}")
+            raise DPCException(f"Error downloading product data for {self.code} at {date_time}: {response.status_code} - {response.text}")

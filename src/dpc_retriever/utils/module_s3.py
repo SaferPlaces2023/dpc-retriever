@@ -32,7 +32,7 @@ import requests
 import logging
 from requests.exceptions import RequestException
 from botocore.exceptions import ClientError, NoCredentialsError
-from .filesystem import justext, justpath, justfname, forceext
+from .filesystem import justext, justpath, justfname, forceext, tempfilename
 from .strings import startswith
 from ..cli.module_log import Logger
 
@@ -46,12 +46,17 @@ def tmp(filename):
     tmp - return the temporary directory
     """
     #yyyymmdd = datetime.datetime.now().strftime("%Y-%m-%d %H.00")
-    jid = os.environ.get(f"{__package__}-JID", os.getpid())
-    rand = int(random.random()* 1e9)
-    workdir= f"{tempfile.gettempdir()}/{__package__}/{jid}"
-    os.makedirs(workdir, exist_ok=True)
+    # jid = os.environ.get(f"{__package__}-JID", os.getpid())
+    # rand = int(random.random()* 1e9)
+    # workdir= f"{tempfile.gettempdir()}/{__package__}/{jid}"
+    # os.makedirs(workdir, exist_ok=True)
+    # ext = f".{justext(filename)}" if filename else ""
+    # return f"{workdir}/tmp_{rand}{ext}"
+    
     ext = f".{justext(filename)}" if filename else ""
-    return f"{workdir}/tmp_{rand}{ext}"
+    return tempfilename(suffix=ext)
+
+
 
 
 def clean():

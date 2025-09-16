@@ -28,6 +28,7 @@ import traceback
 import pprint
 import json
 
+from .utils.filesystem import clean_temp_files
 from .utils.module_s3 import copy
 from .utils.module_prologo import prologo, epilogo
 from .utils.module_status import set_status
@@ -227,8 +228,12 @@ def main_python(
                 ** ({"traceback": traceback.format_exc()} if debug else dict())
             }
         }
+
+    finally:
+        # DOC: -- Cleanup the temporary files of this run --------------------------
+        clean_temp_files(from_garbage_collection=True)
         
-    # DOC: -- Cleanup the temporary files if needed ----------------------------
+    # DOC: -- Cleanup the temporary files if needed --------------------------------
     epilogo(t0, backend, jid)
     
     return result
