@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dpc-retriever"
-version = "1.0.10"
+version = "1.0.11"
 description = "Scripts to get data from DPC API"
 readme = ""
 authors = [
@@ -31,13 +31,6 @@ dependencies = [
 
 dynamic = ["optional-dependencies"]
 
-[tool.setuptools.dynamic]
-optional-dependencies = {
-  gdal_py311 = { file = ["requirements.py311.txt"] },
-  pygeoapi   = { file = ["requirements.pygeoapi.txt"] },
-  all_py311  = { file = ["requirements.py311.txt", "requirements.pygeoapi.txt"] }
-}
-
 [project.urls]
 Homepage = "https://github.com/SaferPlaces2023/dpc-retriever"
 
@@ -51,3 +44,10 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.dynamic]
+optional-dependencies = {
+  gdal_py311 = { file = ["requirements.py311.txt"] },
+  pygeoapi   = { file = ["requirements.pygeoapi.txt"] },
+  all_py311  = { file = ["requirements.py311.txt", "requirements.pygeoapi.txt"] }
+}
