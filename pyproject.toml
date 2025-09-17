@@ -31,13 +31,11 @@ dependencies = [
 
 [project.optional-dependencies]
 pygeoapi = [
-  "pygeoapi"
-]
-py311gdal = [
   "gdal @ https://github.com/cgohlke/geospatial-wheels/releases/download/v2025.1.20/GDAL-3.10.1-cp311-cp311-win_amd64.whl",
   "numpy",
   "numba",
   "gdal2numpy",
+  "pygeoapi",
 ]
 
 [project.urls]
