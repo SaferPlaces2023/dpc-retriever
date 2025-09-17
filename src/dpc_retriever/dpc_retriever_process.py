@@ -241,7 +241,8 @@ class DPCRetrieverProcessor(BaseProcessor):
                     raise StatusException(StatusException.INVALID, 'time_end must be a valid datetime iso-format string')
             if time_start > time_end:
                 raise StatusException(StatusException.INVALID, 'time_start must be less than time_end')
-            
+        
+        # TODO: Rounding should be in function of requested product frequency
         time_start = time_start.replace(minute=(time_start.minute // 5) * 5, second=0, microsecond=0)
         time_end = time_end.replace(minute=(time_end.minute // 5) * 5, second=0, microsecond=0) if time_end is not None else time_start + datetime.timedelta(hours=1)
         if time_end < (datetime.datetime.now(tz=datetime.timezone.utc) - datetime.timedelta(hours=48)).replace(tzinfo=None):
@@ -325,6 +326,7 @@ class DPCRetrieverProcessor(BaseProcessor):
         # DOC: Remove useless band dimension
         dataset = dataset.drop_vars('band')
         dataset[product.code] = (('time', 'y','x'), dataset[product.code].data[:,0,:,:])
+        dataset = dataset.rename({'x': 'lon', 'y': 'lat'})
         return dataset        
 
 
