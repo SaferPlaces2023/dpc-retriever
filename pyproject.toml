@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "dpc-retriever"
-version = "1.0.13"
+version = "1.0.14"
 description = "Scripts to get data from DPC API"
 readme = ""
 authors = [
@@ -29,7 +29,16 @@ dependencies = [
   "geopandas"
 ]
 
-dynamic = ["optional-dependencies"]
+[project.optional-dependencies]
+pygeoapi = [
+  "pygeoapi"
+]
+py311gdal = [
+  "gdal @ https://github.com/cgohlke/geospatial-wheels/releases/download/v2025.1.20/GDAL-3.10.1-cp311-cp311-win_amd64.whl",
+  "numpy",
+  "numba",
+  "gdal2numpy",
+]
 
 [project.urls]
 Homepage = "https://github.com/SaferPlaces2023/dpc-retriever"
@@ -44,12 +53,3 @@ package-dir = {"" = "src"}
 
 [tool.setuptools.packages.find]
 where = ["src"]
-
-[tool.setuptools.dynamic.optional-dependencies.gdal_py311]
-file = ["requirements.py311.txt"]
-
-[tool.setuptools.dynamic.optional-dependencies.pygeoapi]
-file = ["requirements.pygeoapi.txt"]
-
-[tool.setuptools.dynamic.optional-dependencies.all_py311]
-file = ["requirements.py311.txt", "requirements.pygeoapi.txt"]
