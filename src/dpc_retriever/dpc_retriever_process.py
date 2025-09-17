@@ -334,10 +334,10 @@ class DPCRetrieverProcessor(BaseProcessor):
         timestamps = [datetime.datetime.fromisoformat(str(ts).replace('.000000000','')) for ts in dataset.time.values]
         
         if out is None:
-            merged_raster_filename = f'DPC/{product.code}/DPC__{product.code}__{timestamps[-1]}.tif'
-            merged_raster_filepath = os.path.join(self._tmp_data_folder, merged_raster_filename)
+            multiband_raster_filename = f'DPC/{product.code}/DPC__{product.code}__{timestamps[-1]}.tif'
+            multiband_raster_filepath = os.path.join(self._tmp_data_folder, multiband_raster_filename)
         else:
-            merged_raster_filepath = out
+            multiband_raster_filepath = out
         
         xmin, xmax = dataset.lon.min().item(), dataset.lon.max().item()
         ymin, ymax = dataset.lat.min().item(), dataset.lat.max().item()
@@ -345,7 +345,7 @@ class DPCRetrieverProcessor(BaseProcessor):
         pixel_size_x = (xmax - xmin) / nx
         pixel_size_y = (ymax - ymin) / ny
 
-        data = dataset.sortby('lat', ascending=False)[self.variable_name].values
+        data = dataset.sortby('lat', ascending=False)[product.code].values
         geotransform = (xmin, pixel_size_x, 0, ymax, 0, -pixel_size_y)
         projection = dataset.attrs.get('crs', 'EPSG:4326')
         
@@ -353,7 +353,7 @@ class DPCRetrieverProcessor(BaseProcessor):
             data,
             geotransform,
             projection,
-            merged_raster_filepath,
+            multiband_raster_filepath,
             format="COG",
             save_nodata_as=-9999.0,
             metadata={
@@ -363,7 +363,7 @@ class DPCRetrieverProcessor(BaseProcessor):
             }
         )
     
-        return merged_raster_filepath
+        return multiband_raster_filepath
 
 
     def execute(self, data):
