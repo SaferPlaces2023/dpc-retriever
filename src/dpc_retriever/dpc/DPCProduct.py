@@ -127,7 +127,7 @@ class DPCProduct():
         
         response = requests.post(url, json=json_params)
         
-        if response.status_code == 200:
+        if response.status_code == 200 and len(response.content) > 0:
             return response
         else:
             raise DPCException(f"Error fetching product data for {self.code} at {date_time}: {response.status_code} - {response.text}")
