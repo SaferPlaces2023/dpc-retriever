@@ -30,8 +30,8 @@ def retrieve_product(product: DPCProduct, date_time: datetime.datetime=None, max
     """
     
     try:
-        if not product.is_datetime_avaliable(date_time):
-            raise DPCException(f"Product {product.code} not available for the specified date_time: {date_time}")
+        # if not product.is_datetime_avaliable(date_time):
+        #     raise DPCException(f"Product {product.code} not available for the specified date_time: {date_time}")
         
         data_filepath = product.download_data(
             date_time = date_time,

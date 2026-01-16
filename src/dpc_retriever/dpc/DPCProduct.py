@@ -36,7 +36,7 @@ class DPCException(Exception):
 
 class DPCProduct():
     
-    base_url = 'https://radar-api.protezionecivile.it/wide/product'
+    base_url = 'https://radar-api.protezionecivile.it'
     
     def __init__(self, code, name, description, update_frequency, measure_type=None, measure_unit=None):
         self.code = code
@@ -75,17 +75,17 @@ class DPCProduct():
         return pd.Timestamp(now_dt).floor(self.update_frequency).to_pydatetime()
     
     
-    def is_datetime_avaliable(self, date_time):
-        url = f"{self.base_url}/existsProduct"
-        params = {
-            'type': self.code,
-            'time': str(int(date_time.timestamp() * 1000))  # Convert datetime to milliseconds
-        }
-        response = requests.get(url = url, params = params)
-        if response.status_code == 200: 
-            return response.json()
-        else:
-            return False
+    # def is_datetime_avaliable(self, date_time):
+    #     url = f"{self.base_url}/existsProduct"
+    #     params = {
+    #         'type': self.code,
+    #         'time': str(int(date_time.timestamp() * 1000))  # Convert datetime to milliseconds
+    #     }
+    #     response = requests.get(url = url, params = params)
+    #     if response.status_code == 200: 
+    #         return response.json()
+    #     else:
+    #         return False
         
     
     def last_avaliable_datetime(self):
@@ -112,8 +112,8 @@ class DPCProduct():
         Returns the last available data for the product.
         """
         
-        if not self.is_datetime_avaliable(date_time):
-            raise DPCException(f"Product {self.code} not available for the specified date_time: {date_time}")
+        # if not self.is_datetime_avaliable(date_time):
+        #     raise DPCException(f"Product {self.code} not available for the specified date_time: {date_time}")
         
         date_time = self.last_avaliable_datetime() if date_time is None else date_time
         if date_time is None:
@@ -122,7 +122,7 @@ class DPCProduct():
         url = f"{self.base_url}/downloadProduct"
         json_params = {
             "productType": self.code,
-            "productDate": str(int(date_time.timestamp() * 1000))
+            "productDate": int(date_time.timestamp() * 1000)
         }
         
         response = requests.post(url, json=json_params)
@@ -143,23 +143,32 @@ class DPCProduct():
         def get_attachment_filename(response):
             """
             Extracts the filename from the Content-Disposition header.
-            """
-            rgx_fn = re.compile(r'filename="([^"]+)"')
-            filename_match = rgx_fn.findall(response.headers.get('Content-Disposition', ''))
-            return filename_match[0] if filename_match else None
+            # """
+            # print(f'--------- Response Headers: {response.headers} ---------')
+            # rgx_fn = re.compile(r'filename="([^"]+)"')
+            # filename_match = rgx_fn.findall(response.headers.get('Content-Disposition', ''))
+            # return filename_match[0] if filename_match else None
+            return os.path.basename(response.json()['key'])
         
         date_time = self.last_avaliable_datetime() if date_time is None else date_time
+        print(f'--------- Downloading product {self.code} for date_time: {date_time} ---------')
         response = self.request_data(date_time = date_time)
         
         if response.status_code == 200:
             
-            attachment_filename = get_attachment_filename(response)
-            if attachment_filename is None:
-                raise DPCException(f"Error in downloading product {self.code} at {date_time}. Could not extract filename from response headers.")
+            # attachment_filename = get_attachment_filename(response)
+            # if attachment_filename is None:
+            #     raise DPCException(f"Error in downloading product {self.code} at {date_time}. Could not extract filename from response headers.")
 
+            data_info = response.json()
+            attachment_filename = os.path.basename(data_info['key'])
+            attachment_url = data_info['url']
+            data_response = requests.get(attachment_url)
+            if data_response.status_code != 200:
+                raise DPCException(f"Error in downloading product {self.code} at {date_time}. Could not download file from URL.")           
             output_file = filesystem.tempfilename(prefix=filesystem.juststem(attachment_filename), suffix=f'.{filesystem.justext(attachment_filename)}', include_timestamp=False)
             with open(output_file, 'wb') as f:
-                f.write(response.content)
+                f.write(data_response.content)
                 
             if output_file.endswith('.zip'):
                 with zipfile.ZipFile(output_file, 'r') as zip_ref:
