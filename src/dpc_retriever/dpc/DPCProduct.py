@@ -151,7 +151,6 @@ class DPCProduct():
             return os.path.basename(response.json()['key'])
         
         date_time = self.last_avaliable_datetime() if date_time is None else date_time
-        print(f'--------- Downloading product {self.code} for date_time: {date_time} ---------')
         response = self.request_data(date_time = date_time)
         
         if response.status_code == 200:
