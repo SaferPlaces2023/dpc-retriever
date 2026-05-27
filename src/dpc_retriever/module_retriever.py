@@ -102,7 +102,7 @@ def process_product(product: DPCProduct, data_filepath: str, date_time: datetime
         data[product.code] = xr.where(data[product.code] <= -9999, np.nan, data[product.code])
         data[product.code].rio.write_nodata(np.nan, inplace=True)
         if bbox is not None:
-            data = data.rio.clip_box(*bbox)
+            data = data.rio.clip_box(*bbox, allow_one_dimensional_raster=True)
         if t_srs is not None:
             data = data.rio.reproject(t_srs)
         if out_format is not None and filesystem.justext(data_filepath) != out_format:
