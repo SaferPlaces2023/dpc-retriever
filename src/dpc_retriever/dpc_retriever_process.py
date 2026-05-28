@@ -319,9 +319,16 @@ class DPCRetrieverProcessor(BaseProcessor):
 
     def build_dataset(self, product, data_datetimes, data_filenames):
         # DOC: Concat along time dimension
-        dataarrays = [ rioxarray.open_rasterio(filename) for filename in data_filenames ]
+        dataarrays = [] #[ rioxarray.open_rasterio(filename) for filename in data_filenames ]
+        data_crs = None
+        for i,filename in enumerate(data_filenames):
+            with rioxarray.open_rasterio(filename) as da:
+                if i == 0:
+                    data_crs = da.rio.crs
+                dataarrays.append(da)
         dataarray = xr.concat(dataarrays, dim='time')
         dataset = dataarray.to_dataset(name=product.code)
+        dataset.rio.write_crs(data_crs)
         dataset['time'] = xr.DataArray(data_datetimes, dims='time', coords={'time': data_datetimes})
         # DOC: Remove useless band dimension
         dataset = dataset.drop_vars('band')
