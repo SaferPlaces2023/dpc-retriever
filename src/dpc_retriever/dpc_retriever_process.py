@@ -347,7 +347,8 @@ class DPCRetrieverProcessor(BaseProcessor):
 
         data = dataset.sortby('lat', ascending=False)[product.code].values
         geotransform = (xmin, pixel_size_x, 0, ymax, 0, -pixel_size_y)
-        projection = dataset.attrs.get('crs', 'EPSG:4326')
+        # projection = dataset.attrs.get('crs', 'EPSG:4326')
+        projection = dataset.rio.crs
         
         g2n.Numpy2GTiffMultiBanda(
             data,
