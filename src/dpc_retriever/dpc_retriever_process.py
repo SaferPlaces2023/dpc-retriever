@@ -37,8 +37,6 @@ import pandas as pd
 import xarray as xr
 import rioxarray
 
-import gdal2numpy as g2n
-
 from .utils import module_s3, filesystem
 from .utils.status_exception import StatusException
 from .cli.module_log import Logger, set_log_debug
@@ -109,6 +107,23 @@ PROCESS_METADATA = {
             'schema': {
             }
         }, 
+
+        'frequency': {
+            'title': 'Frequency (seconds)',
+            'description': 'The frequency of the data in seconds.',
+            'schema': {
+                'type': 'integer'
+            }
+        },
+
+        't_srs': {
+            'title': 'Target Spatial Reference System',
+            'description': 'The target spatial reference system for the output raster. If not provided, the default CRS will be used.',
+            'schema': {
+                'type': 'string'
+            }
+        },
+
         'bucket_destination': {
             'title': 'Bucket destination',
             'description': 'The bucket destination where the data will be stored. If not provided, the data will not be stored in a bucket. If neither out nor bucket_destination are provided, the output will be returned as a feature collection.',
@@ -190,6 +205,8 @@ class DPCRetrieverProcessor(BaseProcessor):
         time_start = time_range[0] if type(time_range) in [list, tuple] else time_range
         time_end = time_range[1] if type(time_range) in [list, tuple] else None
         out_format = data.get('out_format', None)
+        t_srs = data.get('t_srs') or None
+        frequency = data.get('frequency', None)
         bucket_destination = data.get('bucket_destination', None)
         out = data.get('out', None)
 
@@ -256,6 +273,22 @@ class DPCRetrieverProcessor(BaseProcessor):
         # else:
         # TODO: Default should be in function of requested product
         #     out_format = 'geojson'
+
+        if t_srs is not None:
+            if not isinstance(t_srs, str):
+                raise StatusException(StatusException.INVALID, 't_srs must be a string')
+            if not t_srs.startswith('EPSG:'):
+                raise StatusException(StatusException.INVALID, 't_srs must start with "EPSG:"')
+            
+        if frequency is not None:
+            if not isinstance(frequency, int):
+                raise StatusException(StatusException.INVALID, 'frequency must be an integer')
+            if frequency <= 0:
+                raise StatusException(StatusException.INVALID, 'frequency must be a positive integer')
+            frequency = pd.Timedelta(seconds=frequency)
+            frequency = max(pd.Timedelta(product.update_frequency), frequency)
+        else:
+            frequency = product.update_frequency
         
         if bucket_destination is not None:
             if type(bucket_destination) is not str:
@@ -280,13 +313,15 @@ class DPCRetrieverProcessor(BaseProcessor):
             'time_start': time_start,
             'time_end': time_end,
             'out_format': out_format,
+            't_srs': t_srs,
+            'frequency': frequency,
             'bucket_destination': bucket_destination,
             'out': out
         }
         
 
-    def retrieve_data(self, product, lat_range, long_range, time_start, time_end, debug):
-        output_datetimes = pd.date_range(start=time_start, end=time_end, freq=product.update_frequency).to_list()
+    def retrieve_data(self, product, lat_range, long_range, time_start, time_end, frequency, debug):
+        output_datetimes = pd.date_range(start=time_start, end=time_end, freq=frequency).to_list()
         output_filenames = []
         
         for dt in output_datetimes:
@@ -337,41 +372,69 @@ class DPCRetrieverProcessor(BaseProcessor):
         return dataset        
 
 
-    def create_timestamp_raster(self, product, dataset, out):
+    def create_timestamp_raster(self, product, dataset, t_srs, out):
         timestamps = [datetime.datetime.fromisoformat(str(ts).replace('.000000000','')) for ts in dataset.time.values]
         
         if out is None:
             multiband_raster_filename = f'DPC/{product.code}/DPC__{product.code}__{timestamps[-1]}.tif'
             multiband_raster_filepath = os.path.join(self._tmp_data_folder, multiband_raster_filename)
         else:
+            multiband_raster_filename = os.path.basename(out)
             multiband_raster_filepath = out
-        
-        xmin, xmax = dataset.lon.min().item(), dataset.lon.max().item()
-        ymin, ymax = dataset.lat.min().item(), dataset.lat.max().item()
-        nx, ny = dataset.dims['lon'], dataset.dims['lat']
-        pixel_size_x = (xmax - xmin) / nx
-        pixel_size_y = (ymax - ymin) / ny
 
-        data = dataset.sortby('lat', ascending=False)[product.code].values
-        geotransform = (xmin, pixel_size_x, 0, ymax, 0, -pixel_size_y)
-        # projection = dataset.attrs.get('crs', 'EPSG:4326')
-        projection = dataset.rio.crs
+        # Safe path
+        safe_multiband_raster_filename = multiband_raster_filename.replace(':', '_')
+        multiband_raster_filepath = multiband_raster_filepath.replace(multiband_raster_filename, safe_multiband_raster_filename)
+
+        # Ensure output directory exists
+        os.makedirs(os.path.dirname(multiband_raster_filepath) if os.path.dirname(multiband_raster_filepath) else '.', exist_ok=True)
         
-        g2n.Numpy2GTiffMultiBanda(
-            data,
-            geotransform,
-            projection,
+        # Extract data array for the variable
+        data_array = dataset[product.code]
+       
+        # Sort latitude in descending order (GeoTIFF convention: north to south)
+        data_array = data_array.sortby('lat', ascending=False)
+        
+        # Transpose to (time, lat, lon) if needed
+        if data_array.dims != ('time', 'lat', 'lon'):
+            data_array = data_array.transpose('time', 'lat', 'lon')
+        
+        # Ensure GeoTransform → Rename lat/lon to y/x for rioxarray compatibility + set
+        data_array = data_array.rename({'lat': 'y', 'lon': 'x'})
+        data_array = data_array.rio.set_spatial_dims(x_dim='x', y_dim='y')
+        
+        # Set nodata value
+        data_array = data_array.rio.write_nodata(-9999.0)
+        
+        # Replace NaN with nodata value
+        data_array = data_array.fillna(-9999.0)
+
+        # Reproject to target CRS
+        if t_srs is not None:
+
+            print('\n\n\n', data_array.rio.crs, '\n\n\n')
+            print('\n\n\n', data_array.rio.crs.to_string(), '\n\n\n')
+            print('\n\n\n', data_array.rio.crs.to_epsg(), '\n\n\n')
+
+            data_array = data_array.rio.reproject(t_srs)
+        
+        # Save as Cloud-Optimized GeoTIFF
+        data_array.rio.to_raster(
             multiband_raster_filepath,
-            format="COG",
-            save_nodata_as=-9999.0,
-            metadata={
+            driver='COG',
+            compress='LZW',
+            predictor=2,
+            tags={
                 'band_names': [ts.isoformat() for ts in timestamps],
                 'type': product.measure_type,
                 'unit': product.measure_unit
             }
         )
-    
-        return multiband_raster_filepath
+        
+        Logger.info(f'Created timestamp raster: {multiband_raster_filepath}')
+        Logger.debug(f'Raster dimensions: {data_array.shape} (time, y, x)')
+        
+        return multiband_raster_filepath, multiband_raster_filename
 
 
     def execute(self, data):
@@ -392,6 +455,7 @@ class DPCRetrieverProcessor(BaseProcessor):
                 long_range = args['long_range'],
                 time_start = args['time_start'],
                 time_end = args['time_end'],
+                frequency = args['frequency'],
                 debug = data.get('debug', False)
             )
 
@@ -403,17 +467,18 @@ class DPCRetrieverProcessor(BaseProcessor):
             )
 
             # DOC: Create timestamp raster
-            timestamp_raster = self.create_timestamp_raster(
+            timestamp_raster_tmp, timestamp_raster_dst = self.create_timestamp_raster(
                 product = args['product'],
                 dataset = dataset,
+                t_srs = args['t_srs'],
                 out = args['out'],
             )
             
             # DOC: Store data in bucket if bucket_destination is provided
             if args['bucket_destination'] is not None:
                 bucket_uris = []
-                bucket_uri = f"{args['bucket_destination']}/{filesystem.justfname(timestamp_raster)}"
-                upload_status = module_s3.s3_upload(timestamp_raster, bucket_uri)
+                bucket_uri = f"{args['bucket_destination']}/{timestamp_raster_dst}"
+                upload_status = module_s3.s3_upload(timestamp_raster_tmp, bucket_uri)
                 if not upload_status:
                     raise StatusException(StatusException.ERROR, f"Failed to upload data to bucket {args['bucket_destination']}")
                 bucket_uris.append(bucket_uri)
@@ -430,10 +495,10 @@ class DPCRetrieverProcessor(BaseProcessor):
                 if args['out'] is not None:
                     outputs = {
                         ** outputs,
-                        ** {'filepath': timestamp_raster}
+                        ** {'filepath': timestamp_raster_tmp}
                     }
             else:
-                outputs = timestamp_raster
+                outputs = timestamp_raster_tmp
     
         except StatusException as err:
             outputs = {
