@@ -10,7 +10,7 @@ on:
         default: "v1.0.1-manually-triggered.1"
   push:
     tags: 
-      - "dev-v*"
+      - "v*"
 
 jobs:
   build-application:
@@ -61,7 +61,7 @@ jobs:
           exit 0
         fi
         echo "Testing Docker image with tag: $TAG"
-        docker run --env AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID --env AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY $ECR_REPO:${GITHUB_SHA::8} python tests/test_xyz.py
+        docker run --env AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID --env AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY $ECR_REPO:${GITHUB_SHA::8} python tests/test_last_products.py
 
     - name: Tag and Push Docker Image
       env:

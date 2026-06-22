@@ -132,3 +132,5 @@ dmypy.json
 tests/**
 tests/tmp/
 !tests/**/*.py
+
+/output
