@@ -4,7 +4,7 @@
 FROM 901702069075.dkr.ecr.us-east-1.amazonaws.com/docker-gdal
 
 COPY src /var/tmp/dpc_retriever/src
-COPY setup.py /var/tmp/dpc_retriever/
+COPY pyproject.toml /var/tmp/dpc_retriever/
 WORKDIR /var/tmp/dpc_retriever 
 RUN pip install .
 ADD tests /var/task/tests
